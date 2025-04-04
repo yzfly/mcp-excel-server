@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mcp-excel-server"
+version = "1.0.4"
+description = "MCP Excel Server for Excel operations through the Model Context Protocol"
+authors = [
+    {name = "yzfly", email = "ethereal_ai@hotmail.com"}
+]
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+
+dependencies = [
+    "mcp[cli]>=1.2.0",
+    "pandas>=1.3.0",
+    "numpy>=1.20.0",
+    "matplotlib>=3.4.0",
+    "seaborn>=0.11.0",
+    "openpyxl>=3.0.0",
+    "build>=1.2.2.post1",
+    "twine>=6.1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "black>=23.0.0",
+    "isort>=5.0.0",
+    "flake8>=6.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/yzfly/mcp-excel-server"
+Documentation = "https://github.com/yzfly/mcp-excel-server/blob/main/README.md"
+Repository = "https://github.com/yzfly/mcp-excel-server.git"
+Issues = "https://github.com/yzfly/mcp-excel-server/issues"
+
+[project.scripts]
+mcp-excel-server = "mcp_excel_server.server:main"
