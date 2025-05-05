@@ -40,10 +40,7 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 ```bash
 # Using uv
-uv pip install -r requirements.txt
-
-# Or using pip
-pip install -r requirements.txt
+uv pip install -e .
 ```
 
 ## Integration with Claude Desktop
