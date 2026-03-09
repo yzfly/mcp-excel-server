@@ -292,9 +292,13 @@ def update_excel(file_path: str, data: str, sheet_name: Optional[str] = "Sheet1"
                     if sheet != sheet_name:
                         df = pd.read_excel(excel_file, sheet_name=sheet)
                         df.to_excel(writer, sheet_name=sheet, index=False)
+
+                # ✅ Load existing sheet and merge new data into it        
+                existing_df = pd.read_excel(excel_file, sheet_name=sheet_name)
+                for col in new_df.columns:
+                    existing_df[col] = new_df[col].values
                 
-                # Write new data to specified sheet
-                new_df.to_excel(writer, sheet_name=sheet_name, index=False)
+                existing_df.to_excel(writer, sheet_name=sheet_name, index=False)
         elif ext == '.csv':
             new_df.to_csv(file_path, index=False)
         elif ext == '.tsv':
