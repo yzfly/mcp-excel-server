@@ -255,13 +255,19 @@ def update_excel(file_path: str, data: str, sheet_name: Optional[str] = "Sheet1"
                format: Optional[str] = "csv") -> str:
     """
     Update an existing Excel file with new data.
-    
+
+    If the target sheet exists and the new data has the same number of rows,
+    the new columns are merged into the sheet (existing columns not present
+    in the new data are preserved). If the row counts differ or the sheet
+    does not exist, the sheet is replaced/created with the new data. Other
+    sheets in the workbook are always preserved.
+
     Args:
         file_path: Path to the Excel file to update
         data: New data in CSV or JSON format
         sheet_name: Name of the sheet to update (for Excel files)
         format: Format of the input data ('csv' or 'json')
-        
+
     Returns:
         Confirmation message
     """
@@ -284,17 +290,28 @@ def update_excel(file_path: str, data: str, sheet_name: Optional[str] = "Sheet1"
         
         # Read existing file
         if ext in ['.xlsx', '.xls', '.xlsm']:
-            # For Excel files, we need to read all sheets
-            excel_file = pd.ExcelFile(file_path)
+            # Read all sheets into memory first, so a failure here can never
+            # leave a partially written workbook behind.
+            with pd.ExcelFile(file_path) as excel_file:
+                sheets = {
+                    sheet: pd.read_excel(excel_file, sheet_name=sheet)
+                    for sheet in excel_file.sheet_names
+                }
+
+            existing_df = sheets.get(sheet_name)
+            if existing_df is not None and len(existing_df) == len(new_df):
+                # Same row count: merge new columns into the existing sheet,
+                # preserving columns that are not part of the update payload.
+                for col in new_df.columns:
+                    existing_df[col] = new_df[col].values
+                sheets[sheet_name] = existing_df
+            else:
+                # Row count differs or sheet is new: replace/create the sheet
+                sheets[sheet_name] = new_df
+
             with pd.ExcelWriter(file_path) as writer:
-                # Copy all existing sheets
-                for sheet in excel_file.sheet_names:
-                    if sheet != sheet_name:
-                        df = pd.read_excel(excel_file, sheet_name=sheet)
-                        df.to_excel(writer, sheet_name=sheet, index=False)
-                
-                # Write new data to specified sheet
-                new_df.to_excel(writer, sheet_name=sheet_name, index=False)
+                for sheet, df in sheets.items():
+                    df.to_excel(writer, sheet_name=sheet, index=False)
         elif ext == '.csv':
             new_df.to_csv(file_path, index=False)
         elif ext == '.tsv':
